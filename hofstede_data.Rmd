@@ -41,10 +41,15 @@ summary(lm)
 ```{r}
 #install.packages('GGally')
 library(GGally)
+library(ggrepel)
 ggpairs(cv, columns = c(4, 3, 5, 6, 7, 8))
 help("ggpairs")
 
 ggpairs(cv %>% select(idv, pdi, mas, uai, ltowvs, ivr))
+cv %>% 
+  ggplot(aes(x=idv, y=pdi))+
+  geom_point(size=3, color='red')+
+  geom_label(aes(label=ctr))
 ggcorr(cv %>% select(idv, pdi, mas, uai, ltowvs, ivr))
 
 ```
