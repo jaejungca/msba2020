@@ -1,0 +1,60 @@
+---
+title: "Hofstede Cultural Value"
+author: "JMJ"
+date: "11/27/2020"
+output: html_document
+---
+
+##Install the packages
+
+```{r}
+#install.packages("tidyverse") # intall the package
+library(tidyverse) # upload the package
+library(readxl)
+```
+
+# Read cv file
+```{r}
+cv <- read_excel("6-dimensions-for-website-2015-12-08-0-100.xls")
+class(cv)
+
+summary(cv)
+head(cv)
+mean(cv$idv, na.rm = TRUE)
+```
+
+## Plot
+
+```{r}
+plot(cv$idv, cv$pdi)
+help("plot")
+ggplot(data=cv, aes(x=idv, y=pdi)) +
+  geom_point(size=5, col='red') +
+  geom_smooth(method = lm)
+```
+## Regression
+```{r}
+lm <- lm(pdi ~ idv, data = cv)
+summary(lm)
+```
+# Correlation
+```{r}
+#install.packages('GGally')
+library(GGally)
+ggpairs(cv, columns = c(4, 3, 5, 6, 7, 8))
+help("ggpairs")
+
+ggpairs(cv %>% select(idv, pdi, mas, uai, ltowvs, ivr))
+ggcorr(cv %>% select(idv, pdi, mas, uai, ltowvs, ivr))
+
+```
+## Multiple Regression
+
+```{r}
+
+mlm <- lm(ivr ~ pdi + mas + uai + ltowvs + idv, data=cv)
+mlm
+summary(mlm)
+help(lm)
+```
+
