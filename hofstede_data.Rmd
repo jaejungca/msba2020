@@ -7,15 +7,14 @@ output: html_document
 
 ##Install the packages
 
-```{r}
-#install.packages("tidyverse") # install the package
+```{r message=FALSE, warning=FALSE}
 library(tidyverse) # upload the package
 library(ggthemes)
 library(readxl)
 ```
 
 # Read cv file
-```{r}
+```{r message=FALSE, warning=FALSE}
 cv <- read_excel("6-dimensions-for-website-2015-12-08-0-100.xls")
 class(cv)
 
@@ -26,7 +25,7 @@ mean(cv$idv, na.rm = TRUE)
 
 ## Plot
 
-```{r}
+```{r simple plot, message=FALSE, warning=FALSE}
 plot(cv$idv, cv$pdi)
 
 ggplot(data=cv, aes(x=idv, y=pdi)) +
@@ -34,20 +33,28 @@ ggplot(data=cv, aes(x=idv, y=pdi)) +
   geom_smooth(method = lm) +
   theme_wsj()
 
+```
+
+```{r plot with labels, message=FALSE, warning=FALSE}
+
+#install.packages("ggrepel")
 library(ggrepel)
 cv %>% 
   ggplot(aes(x=idv, y=pdi))+
-  geom_point(size=3, color='red')+
+  geom_point(size=3, color='red')+ #cheatsheet: https://rstudio.com/wp-content/uploads/2015/12/ggplot2-cheatsheet-2.0.pdf
   geom_smooth(method = lm) +
   geom_label_repel(aes(label=ctr))
 ```
+
+
+
 ## Regression
-```{r}
+```{r simple regression, message=FALSE, warning=FALSE}
 lm <- lm(pdi ~ idv, data = cv)
 summary(lm)
 ```
 # Correlation
-```{r}
+```{r Correlations, message=FALSE, warning=FALSE}
 #install.packages('GGally')
 library(GGally)
 
@@ -61,7 +68,7 @@ ggcorr(cv %>% select(idv, pdi, mas, uai, ltowvs, ivr))
 ```
 ## Multiple Regression
 
-```{r}
+```{r Multiple Regression, message=FALSE, warning=FALSE}
 
 mlm <- lm(ivr ~ pdi + mas + uai + ltowvs + idv, data=cv)
 mlm
