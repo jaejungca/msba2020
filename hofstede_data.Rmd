@@ -14,7 +14,7 @@ library(readxl)
 ```
 
 # Read cv file
-```{r message=FALSE, warning=FALSE}
+```{r Descriptive Stat, message=FALSE, warning=FALSE}
 cv <- read_excel("6-dimensions-for-website-2015-12-08-0-100.xls")
 class(cv)
 
