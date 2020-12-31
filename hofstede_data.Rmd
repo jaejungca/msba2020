@@ -75,4 +75,132 @@ mlm
 summary(mlm)
 
 ```
+# New dataset: 
+## covid data were from WHO as of December 20, 2020, 
+## population data were based on esitates made on July 2020; 
+## GPD (US$million) from  "World Economic Outlook Database, October 2020". IMF.org. International Monetary Fund. 13 October 2020. Retrieved 13 October 2020.
+## Cultural value scores from Hostede's website added on Dec. 30, 2020
+```{r sample size}
+# n-5-1 = df = 59 --> n = 59+6 = 65. + 25 = 90
+(25/65) # 38% increase in sample size
+
+```
+
+# Read cv.new file
+```{r Descriptive Stat, message=FALSE, warning=FALSE}
+cv.new <- read_excel("6-dimensions-for-website-2020-12-30-cov19.xls")
+class(cv.new)
+
+summary(cv.new)
+head(cv.new)
+mean(cv.new$idv, na.rm = TRUE)
+```
+
+## Plot with new data
+
+```{r simple plot, message=FALSE, warning=FALSE}
+plot(cv.new$idv, cv.new$pdi)
+
+ggplot(data=cv.new, aes(x=idv, y=pdi)) +
+  geom_point(size=5, col='red') +
+  geom_smooth(method = lm) +
+  theme_wsj()
+
+```
+
+```{r plot with labels, message=FALSE, warning=FALSE}
+
+#install.packages("ggrepel")
+#library(ggrepel)
+cv.new %>% 
+  ggplot(aes(x=idv, y=pdi))+
+  geom_point(size=3, color='red')+ #cheatsheet: https://rstudio.com/wp-content/uploads/2015/12/ggplot2-cheatsheet-2.0.pdf
+  geom_smooth(method = lm) +
+  geom_label_repel(aes(label=ctr))
+```
+
+
+
+## Regression with new data
+```{r simple regression, message=FALSE, warning=FALSE}
+lm.new <- lm(pdi ~ idv, data = cv.new)
+summary(lm.new)
+```
+# Correlation with new data
+```{r Correlations, message=FALSE, warning=FALSE}
+#install.packages('GGally')
+library(GGally)
+
+ggpairs(cv.new, columns = c(4, 3, 5, 6, 7, 8))
+ggcorr(cv.new %>% select(idv, pdi, mas, uai, ltowvs, ivr))
+
+```
+## Multiple Regression with new data
+
+```{r Multiple Regression, message=FALSE, warning=FALSE}
+
+mlm.new <- lm(ivr ~ pdi + mas + uai + ltowvs + idv, data=cv.new)
+mlm.new
+summary(mlm.new)
+
+```
+#Visualizing covid data
+
+# Covid data descriptive statistics and Data Visualization
+```{r}
+summary(cv.new)
+#install.packages("psych")
+#library(psych)
+describe(cv.new$idv)
+#help("describe")
+describe(cv.new$idv, trim = .05, quant = c(.1, .25, .5, .75, .90))
+plot(cv.new$idv, cv.new$case)
+plot(cv.new$case)
+
+describe(cv.new$case, trim = .05, quant = c(.1, .25, .5, .75, .90))
+hist(cv.new$case)
+hist(log(cv.new$case))
+cv.new$lcase <- log(cv.new$case)
+hist(cv.new$lcase)
+describe(cv.new$lcase, trim = .05, quant = c(.1, .25, .5, .75, .90))
+
+describe(cv.new$death, trim = .05, quant = c(.1, .25, .5, .75, .90))
+hist(cv.new$death)
+hist(log(cv.new$death))
+cv.new$ldeath <- log(cv.new$death)
+hist(cv.new$ldeath)
+describe(cv.new$ldeath, trim = .05, quant = c(.1, .25, .5, .75, .90))
+
+hist(cv.new$pop)
+hist(log(cv.new$pop))
+cv.new$lpop <- log(cv.new$pop)
+hist(cv.new$lpop)
+
+hist(cv.new$gdp)
+hist(log(cv.new$gdp))
+describe(log(cv.new$gdp), trim = .05, quant = c(.1, .25, .5, .75, .90))
+cv.new$lgdp <- log(cv.new$gdp)
+hist(cv.new$lgdp)
+
+summary(cv.new$gdp)
+summary(cv.new$gdp*1000000 / cv.new$pop)
+cv.new$gdp_pc <- (cv.new$gdp*1000000) / cv.new$pop
+describe(cv.new$gdp_pc, trim = .05, quant = c(.1, .25, .5, .75, .90))
+hist(cv.new$gdp_pc)
+hist(log(cv.new$gdp_pc))
+describe(log(cv.new$gdp_pc), trim = .05, quant = c(.1, .25, .5, .75, .90))
+
+cv.new$gpd_pc <- NULL
+
+```
+
+```{r Correlations, message=FALSE, warning=FALSE}
+## Correlations
+ggpairs(cv.new %>% select(case,death,lcase,ldeath,pop,lpop,gdp,gdp_pc,idv,pdi,mas,uai,ltowvs,ivr))
+
+## 
+
+```
+
+
 
