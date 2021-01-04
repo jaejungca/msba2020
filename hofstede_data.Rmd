@@ -458,5 +458,9 @@ bptest(fit.cpp8)
   fit.cpp8 <- lm(data = cv.new, cpp ~ idv + pdi + mas + uai + ltowvs + ivr + lgdp_pc + lpop)
   coeftest(fit.cpp8, vcov=vcovHC) # from lmtest package
   stargazer(fit.cpp8, coeftest(fit.cpp8, vcov=vcovHC), type = 'text')
+  
+# x-log, y-level --> 1% change in x will lead to b/100 change in y
+#                --> 100% change in x will lead to (b/100)*100= b change in y
+  
 ```
 
