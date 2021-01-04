@@ -8,9 +8,34 @@ output: html_document
 ##Install the packages
 
 ```{r message=FALSE, warning=FALSE}
+#install.packages("psych")
+#install.packages("car") #car: Companion to Applied Regression
+#install.packages(lmtest)
+#install.packages("MASS")
+#install.packages("caret")
+#install.packages("foreign")
+#install.packages("stargazer")
+#install.packages("sandwich")
+#install.packages("tidyverse")
+#install.packages("ggthemes")
+#install.packages("readxl")
+#install.packages("ggrepel")
+#install.packages('GGally')
+
+library(psych)
+library(car)
+library(lmtest)
+library(MASS)
+library(caret)
+library(foreign)
+library(stargazer)
+library(sandwich)
+
 library(tidyverse) # upload the package
 library(ggthemes)
 library(readxl)
+library(ggrepel)
+library(GGally)
 ```
 
 # Read cv file
@@ -76,10 +101,11 @@ summary(mlm)
 
 ```
 # New dataset: 
-## covid data were from WHO as of December 20, 2020, supplemented by Hong Kong and Taiwan data from https://github.com/CSSEGISandData/COVID-19
-## population data were based on esitates made on July 2020; 
-## GPD (US$million) from  "World Economic Outlook Database, October 2020". IMF.org. International Monetary Fund. 13 October 2020. Retrieved 13 October 2020.
-## Cultural value scores from Hostede's website added on Dec. 30, 2020
+
+1. covid data were from WHO as of December 20, 2020, supplemented by Hong Kong and Taiwan data from https://github.com/CSSEGISandData/COVID-19
+2. population data were based on esitates made on July 2020; 
+3. GPD (US$million) from  "World Economic Outlook Database, October 2020". IMF.org. International Monetary Fund. 13 October 2020. Retrieved 13 October 2020.
+4. Cultural value scores from Hostede's website added on Dec. 30, 2020
 ```{r sample size}
 # n-5-1 = df = 59 --> n = 59+6 = 65. + 25 = 90
 (25/65) # 38% increase in sample size
@@ -96,7 +122,7 @@ head(cv.new)
 mean(cv.new$idv, na.rm = TRUE)
 ```
 
-## Plot with new data
+## Plotting with new data
 
 ```{r simple plot, message=FALSE, warning=FALSE}
 plot(cv.new$idv, cv.new$pdi)
@@ -121,7 +147,7 @@ cv.new %>%
 
 
 
-## Regression with new data
+## Regression with new data with Cultural values
 ```{r simple regression, message=FALSE, warning=FALSE}
 lm.new <- lm(pdi ~ idv, data = cv.new)
 summary(lm.new)
@@ -129,7 +155,7 @@ summary(lm.new)
 # Correlation with new data
 ```{r Correlations, message=FALSE, warning=FALSE}
 #install.packages('GGally')
-library(GGally)
+#library(GGally)
 
 ggpairs(cv.new, columns = c(4, 3, 5, 6, 7, 8))
 ggcorr(cv.new %>% select(idv, pdi, mas, uai, ltowvs, ivr))
@@ -139,7 +165,7 @@ ggcorr(cv.new %>% select(idv, pdi, mas, uai, ltowvs, ivr))
 
 ```{r Multiple Regression, message=FALSE, warning=FALSE}
 
-mlm.new <- lm(ivr ~ pdi + mas + uai + ltowvs + idv, data=cv.new)
+mlm.new <- lm(ivr ~ idv + pdi + mas + uai + ltowvs, data=cv.new)
 mlm.new
 summary(mlm.new)
 
@@ -151,11 +177,15 @@ summary(mlm.new)
 summary(cv.new)
 #install.packages("psych")
 #library(psych)
-describe(cv.new$idv)
 #help("describe")
-describe(cv.new$idv, trim = .05, quant = c(.1, .25, .5, .75, .90))
-plot(cv.new$idv, cv.new$case)
+
+describe(cv.new$idv)
 plot(cv.new$case)
+
+describe(cv.new$idv, trim = .05, quant = c(.1, .25, .5, .75, .90))
+
+plot(cv.new$idv, cv.new$case)
+
 
 describe(cv.new$case, trim = .05, quant = c(.1, .25, .5, .75, .90))
 hist(cv.new$case)
@@ -182,25 +212,251 @@ describe(log(cv.new$gdp), trim = .05, quant = c(.1, .25, .5, .75, .90))
 cv.new$lgdp <- log(cv.new$gdp)
 hist(cv.new$lgdp)
 
-summary(cv.new$gdp)
+describe(cv.new$gdp, trim = .05, quant = c(.1, .25, .5, .75, .90))
 summary(cv.new$gdp*1000000 / cv.new$pop)
 cv.new$gdp_pc <- (cv.new$gdp*1000000) / cv.new$pop
 describe(cv.new$gdp_pc, trim = .05, quant = c(.1, .25, .5, .75, .90))
 hist(cv.new$gdp_pc)
 hist(log(cv.new$gdp_pc))
-describe(log(cv.new$gdp_pc), trim = .05, quant = c(.1, .25, .5, .75, .90))
+cv.new$lgdp_pc <- log(cv.new$gdp_pc)
+describe(cv.new$lgdp_pc, trim = .05, quant = c(.1, .25, .5, .75, .90))
+hist(cv.new$lgdp_pc)
+#cv.new$gpd_pc <- NULL
 
-cv.new$gpd_pc <- NULL
+#cpp: case per population x 1,000,000
+cv.new$cpp <- (cv.new$case/cv.new$pop)*1000000
+cv.new[c("ctr","cpp")]
+hist(cv.new$cpp)
+hist(log(cv.new$cpp))
+
+#dpp: death per population x 1,000,000
+describe(cv.new$death/cv.new$pop*1000000)
+cv.new$dpp <- (cv.new$death/cv.new$pop)*1000000
+describe(cv.new$dpp)
+hist(cv.new$dpp)
+hist(log(cv.new$dpp))
+describe(log(cv.new$dpp))
+```
+
+## Cultural value: descriptive statistics and Data Visualization
+```{r Cultural value viz with new data}
+summary(cv.new)
+attach(cv.new)
+
+describe(idv, trim = .05, quant = c(.1, .25, .5, .75, .90))
+hist(idv)
+
+describe(pdi, trim = .05, quant = c(.1, .25, .5, .75, .90))
+hist(pdi)
+
+describe(mas, trim = .05, quant = c(.1, .25, .5, .75, .90))
+hist(mas)
+
+describe(uai, trim = .05, quant = c(.1, .25, .5, .75, .90))
+hist(uai)
+
+describe(ltowvs, trim = .05, quant = c(.1, .25, .5, .75, .90))
+hist(ltowvs)
+
+describe(ivr, trim = .05, quant = c(.1, .25, .5, .75, .90))
+hist(ivr)
 
 ```
+
 
 ```{r Correlations with new data, message=FALSE, warning=FALSE}
 ## Correlations
-ggpairs(cv.new %>% select(case,death,lcase,ldeath,pop,lpop,gdp,gdp_pc,idv,pdi,mas,uai,ltowvs,ivr))
+ggpairs(cv.new %>% select(cpp,dpp,lcase,ldeath,lpop,lgdp,lgdp_pc,idv,pdi,mas,uai,ltowvs,ivr))
+ 
 
-## 
+```
+
+# Regression Assumptions (https://rpubs.com/aryn999/LinearRegressionAssumptionsAndDiagnosticsInR)
+
+## 1. Linearity (Correct functional form): Check:
+
+Detection:
+ (1) plot of y vs. x or 
+ (2) plot of residuals vs. x or 
+ (3) plot of Residuals vs. fitted.values
+
+Remedy: use correct functional form
+
+```{r Linearity: case vs. cpp}
+attach(cv.new)
+# case vs. idv
+#(1) plot of y vs. x 
+fit.case1 <- lm(case~idv)
+plot(idv,case)
+abline(fit.case1, col="red")
+
+#(2) plot of residuals vs. x 
+plot(fit.case1$model$idv,fit.case1$residuals)
+abline(h = 0, col="blue")
+
+#(3) plot of Residuals vs. fitted.values 
+plot(fit.case1$fitted.values, fit.case1$residuals)
+abline(h = 0, col="red")
+
+plot(fit.case1, 1)
+
+# cpp vs. idv
+#(1) plot of y vs. x 
+fit.cpp1 <- lm(cpp~idv)
+plot(idv,cpp)
+abline(fit.cpp1, col="red")
+
+#(2) plot of residuals vs. x 
+plot(fit.cpp1$model$idv,fit.cpp1$residuals)
+abline(h = 0, col="blue")
+
+#(3) plot of Residuals vs. fitted.values 
+plot(fit.cpp1$fitted.values, fit.cpp1$residuals)
+abline(h = 0, col="red")
+
+plot(fit.cpp1, 1)
 
 ```
 
 
+## 2. Constant Error terms  (e.g., expenditure as a function of income): Check:
+Detection:
+ (1) plot of y vs. x or 
+ (2) plot of residuals vs. x or 
+ (3) plot of Residuals vs. fitted.values
+ (4) ncvTest()
+ (5) BP instaTest
+Remedies: 
+(1) white's standard errors (https://www.r-econometrics.com/methods/hcrobusterrors/), 
+(2) WLS, 
+(3) Log transformation
+
+```{r non-constant variance test}
+# (4) ncvTest() # car package: H0: constant variance = Homoskedasticity
+ncvTest(fit.case1) # p < .001 --> hetero
+ncvTest(fit.cpp1) # p > .10 --> homo
+
+# (5) BP (Breusch-Pagan) Test:bptest() within lmtest package: H0: constant variance = Homoskedasticity
+bptest(fit.case1) # p < .05 --> Hetero
+bptest(fit.cpp1) # p > .10 --> homo
+
+
+```
+
+
+
+## 3. Independet error terms: 
+usually okay in cross-sectional data
+
+Detection: (1) Durbin Watson Test for Autocorrelation
+
+```{r Durbin Watson Test for Autocorrelation}
+# (1) Durbin Watson Test for Autocorrelation: from car package
+#H0: There is no autocorrelation
+durbinWatsonTest(fit.case1) # p > .10 --> no autocorrelation
+durbinWatsonTest(fit.cpp1) # p > .10 --> no autocorrelation
+```
+
+
+## 4. Normality of error terms: Check:
+Issue: when the assumption is violated, the model is okay as long as N is large; when n is small, se is affected.
+
+Detection Method:
+(1) plot of y vs. x or 
+(2) plot of residuals vs. x or 
+(3) plot of Residuals vs. fitted.values
+(4) Histogram or
+(5) Q-Q plot
+(6) Shapiro-Wilk Test
+
+Remedies: change functional form?
+
+```{r}
+#(4) Histogram 
+hist(fit.case1$residuals)
+describe(fit.case1$residuals, trim = .05, quant = c(.1, .25, .5, .75, .90))
+
+hist(fit.cpp1$residuals)
+describe(fit.cpp1$residuals, trim = .05, quant = c(.1, .25, .5, .75, .90))
+
+#(5) Q-Q plot
+plot(fit.case1, 2)
+plot(fit.cpp1, 2)
+
+#(6) Shapiro-Wilk Normality: H0: normal distribution; studres() from MASS package
+
+studres(fit.case1)
+shapiro.test(studres(fit.case1)) # p < .001 --> res. not normally distribute
+
+studres(fit.cpp1)
+shapiro.test(studres(fit.cpp1)) # p < .001 --> res. not normally distribute
+
+```
+
+
+## 5. No multicollinearity
+Issue: high correlation among X variables: expected value of X1 on y, holding X2 constant doesn't make sense.
+
+Detection:
+(1) Examine correlations between X variables (Rho ~ 1)
+(2) Examine VIF
+
+Remedies: Remove one of the variables
+
+
+```{r Multicollinearity, message=FALSE, echo=FALSE}
+#(1) Examine correlations between X variables (Rho ~ 1)
+ggpairs(cv.new %>% select(cpp, idv, pdi, mas, uai, ltowvs, ivr, lgdp_pc, lgdp, lpop))
+
+#(2) Examine VIF
+summary(lm(data = cv.new, cpp ~ idv + pdi + mas + uai + ltowvs + ivr + lgdp_pc + lgdp + lpop))
+fit.cpp8 <- lm(data = cv.new, cpp ~ idv + pdi + mas + uai + ltowvs + ivr + lgdp_pc + lgdp)
+vif(fit.cpp8)
+summary(fit.cpp8)
+
+fit.cpp8 <- lm(data = cv.new, cpp ~ idv + pdi + mas + uai + ltowvs + ivr + lgdp_pc + lpop)
+vif(fit.cpp8)
+summary(fit.cpp8)
+
+```
+
+
+## 6. Exogeneity
+Detection:
+(1) Intuition <- lit review
+
+# Modeling with new variables
+## Regressing cpp on cultgural values + pop + gdp
+
+fit.cpp8 <- lm(data = cv.new, cpp ~ idv + pdi + mas + uai + ltowvs + ivr + lgdp_pc + lpop)
+vif(fit.cpp8)
+summary(fit.cpp8)
+
+```{r}
+#Model 1
+summary(lm(data = cv.new, cpp ~ idv + pdi + mas + uai + ltowvs + ivr + lgdp_pc + lgdp + lpop))
+
+#Model 2: Adj. R2 = .34
+fit.cpp8 <- lm(data = cv.new, cpp ~ idv + pdi + mas + uai + ltowvs + ivr + lgdp_pc + lgdp)
+vif(fit.cpp8)
+summary(fit.cpp8)
+fit.cpp8 <- lm(data = cv.new, cpp ~ idv + pdi + mas + uai + ltowvs + ivr + lgdp_pc + lgdp)
+#bptest(fit.cpp8)
+## Robust standard errors
+  fit.cpp8 <- lm(data = cv.new, cpp ~ idv + pdi + mas + uai + ltowvs + ivr + lgdp_pc + lgdp) 
+  coeftest(fit.cpp8, vcov=vcovHC) # from lmtest package
+  stargazer(fit.cpp8, coeftest(fit.cpp8, vcov=vcovHC), type = 'text')
+ 
+#Model 3: Adj. R2 = .34
+fit.cpp8 <- lm(data = cv.new, cpp ~ idv + pdi + mas + uai + ltowvs + ivr + lgdp_pc + lpop)
+vif(fit.cpp8)
+summary(fit.cpp8)
+fit.cpp8 <- lm(data = cv.new, cpp ~ idv + pdi + mas + uai + ltowvs + ivr + lgdp_pc + lpop)
+bptest(fit.cpp8)
+
+## Robust standard errors
+  fit.cpp8 <- lm(data = cv.new, cpp ~ idv + pdi + mas + uai + ltowvs + ivr + lgdp_pc + lpop)
+  coeftest(fit.cpp8, vcov=vcovHC) # from lmtest package
+  stargazer(fit.cpp8, coeftest(fit.cpp8, vcov=vcovHC), type = 'text')
+```
 
